@@ -1,0 +1,6 @@
+# general ignores for premake output and comilation
+obj/
+bin/
+
+Makefile
+*.make
