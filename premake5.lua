@@ -1,7 +1,8 @@
-workspace "HelloWorld"
+workspace "Mlang"
     configurations { "Debug", "Release" }
+    -- location "build"
 
-project "HelloWorld"
+project "mlc"
     kind "ConsoleApp"
     language "C"
     targetdir "bin/%{cfg.buildcfg}"
