@@ -1,18 +1,9 @@
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
+#include <stdint.h>
 
-#include "dynamic_array.h"
+#include "lexer.h"
 
-#define DYN_ARRAY_SIZE 10000
-
-typedef struct {
-    uint8_t type;
-    uint32_t count;
-} token_t;
-
-bool read_program(dyn_t* file_array, char* file_path);
 
 int main(int argc, char** argv) {
     if (argc <= 1) {
@@ -20,54 +11,27 @@ int main(int argc, char** argv) {
         exit(0);
     }
 
-    dyn_t file_array = { 0 };
-    if (!read_program(&file_array, argv[1]))
-        exit(0);
-
-    size_t i = 0;
-
-    while (i < file_array.length) {
-        putc(((int32_t*)file_array.data_pointer)[i++], stdout);
-    }
-
-    free(file_array.data_pointer);
-}
-
-bool read_program(dyn_t* file_array, char* file_path) {
-    FILE* current_file = fopen(file_path, "r");
-
-    if (current_file == NULL) {
-        printf("cant find file %s\n", file_path);
-        return false;
-    }
-
-    if (!dyn_init(&file_array, sizeof(int32_t), DYN_ARRAY_SIZE)) {
-        printf("dynamic array init error\n");
-        return false;
-    }
-
-    size_t i = 0;
+    set_source_file(argv[1]);
 
     while (1) {
-        int c = fgetc(current_file);
-        if (c == -1) break; 
+        token_t tok = lex_read_next();
+    
 
-        int32_t* array = file_array->data_pointer;
-        
-        array[i] = c;
-
-        if (i >= file_array->length) {
-            if (!dyn_add_size(file_array, DYN_ARRAY_SIZE / 10)) {
-                puts("error adding size");
-                fclose(current_file);
-                return false;
-            }
+        switch (tok.id) {
+            case END_OPERATOR:
+            case NONE:
+                printf("\n");
+                return 0;
+            case NUMBER:
+                printf("%d ", tok.parameter);
+                break;
+            case IDENTIFIER:
+                printf("%s ", tok.ident);
+                break;
+            default:
+                printf("%c ", tok.id);
+                break;
         }
-
-        i++;
     }
-
-    fclose(current_file);
-
-    return true;
 }
+
