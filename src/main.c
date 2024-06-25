@@ -4,6 +4,7 @@
 
 #include "lexer.h"
 #include "parser.h"
+#include "interp.h"
 
 
 void traverse(ast_tree_t* node, size_t deep) {
@@ -44,7 +45,10 @@ int main(int argc, char** argv) {
 
     ast_tree_t* tree = parse();
 
-    traverse(tree, 0);
+    printf("out: %d ", execute_tree(tree));
+
+    //traverse(tree, 0);
+
     printf("\n");
 }
 
