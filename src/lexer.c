@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define DYN_ARRAY_SIZE 10000
 
@@ -26,6 +27,54 @@ bool set_source_file(char* path) {
     return read_program(&source_file, path);
 }
 
+void print_error_from_token(char* error, token_t token) {
+    puts("\n");
+
+    if (token.l0 != token.l1) {
+        puts("different lines in token!");
+        return;
+    }
+
+    int32_t* source = source_file.data_pointer;
+
+    size_t start_char;
+    if (token.c0 > 0) {
+        start_char = token.c0 - 1;
+        while (start_char > 0)
+            if (source[start_char] != '\n') 
+                start_char++;
+            else break;
+    }
+
+    size_t stop_char = token.c1 - 1;
+    while (stop_char < source_file.length) 
+        if (source[stop_char] != '\n') 
+            stop_char++;
+        else break;
+   
+    printf("\n%s\n", error);
+    printf("%4d|", token.l0);
+
+    for (size_t i = start_char; i < token.c0; i++)
+        putc(source[i], stdout);
+
+    putc('"', stdout);
+    for (size_t i = token.c0; i < token.c1; i++)
+        putc(source[i], stdout);
+    putc('"', stdout);
+
+    for (size_t i = token.c1; i < stop_char; i++)
+        putc(source[i], stdout);
+
+}
+
+token_t lex_peek_next(void) {
+    token_t token = lex_read_next();
+    line_counter = token.l0;
+    lexer_index = token.c0;
+    return token;
+}
+
 token_t lex_read_next(void) {
     int32_t* source = source_file.data_pointer;
     token_t token = { 0 };
@@ -35,7 +84,11 @@ token_t lex_read_next(void) {
     switch (source[lexer_index]) {
         case EOF:
         case '\0':
+            token.c0 = lexer_index;
+            token.l0 = line_counter;
             token.id = END_OPERATOR;
+            token.c1 = lexer_index;
+            token.l1 = line_counter;
             break;
         case '\n':
             line_counter++;
@@ -48,8 +101,12 @@ token_t lex_read_next(void) {
         case '/': 
         case '(':
         case ')': 
+            token.c0 = lexer_index;
+            token.l0 = line_counter;
             token.id = source[lexer_index];
             lexer_index++;
+            token.c1 = lexer_index;
+            token.l1 = line_counter;
             break;
         default:
             if (source[lexer_index] >= '0' && source[lexer_index] <= '9') {
@@ -88,7 +145,6 @@ token_t lex_read_next(void) {
                     token.ident[i] = 0;
                 }
 
-
                 while (size-- > 0) {
                     if ((source[lexer_index] >= 'a' && source[lexer_index] <= 'z') || (source[lexer_index] >= 'A' && source[lexer_index] <= 'Z'))
                         token.ident[MAX_IDENT_SIZE - 2 - size] = source[lexer_index];
@@ -111,8 +167,8 @@ token_t lex_read_next(void) {
             }
 
             lexer_index++;
-            // forget about identifier right now 
-            goto eat_token; break;
+            goto eat_token; 
+            break;
     }
 
     return token;

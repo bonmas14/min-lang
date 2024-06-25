@@ -38,3 +38,6 @@ bool set_source_file(char* path);
 void close_source_file(void);
 
 token_t lex_read_next(void);
+token_t lex_peek_next(void);
+
+void print_error_from_token(char* error, token_t token);

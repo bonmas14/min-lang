@@ -3,7 +3,36 @@
 #include <stdint.h>
 
 #include "lexer.h"
+#include "parser.h"
 
+
+void traverse(ast_tree_t* node, size_t deep) {
+    if (node == NULL) return;
+
+    for (size_t i = 0; i < deep; i++) {
+        putc(' ', stdout);
+    }
+
+    switch (node->token.id) {
+        case NUMBER:
+            printf("%d", node->token.parameter);
+            break;
+        default:
+            printf("%c", node->token.id);
+            break;
+    
+    }
+
+    if (node->right != NULL) {
+        putc('\n', stdout);
+        traverse(node->right, deep + 1);
+    }
+
+    if (node->left != NULL) {
+        putc('\n', stdout);
+        traverse(node->left, deep + 1);
+    }
+}
 
 int main(int argc, char** argv) {
     if (argc <= 1) {
@@ -13,25 +42,10 @@ int main(int argc, char** argv) {
 
     set_source_file(argv[1]);
 
-    while (1) {
-        token_t tok = lex_read_next();
-    
+    ast_tree_t* tree = parse();
 
-        switch (tok.id) {
-            case END_OPERATOR:
-            case NONE:
-                printf("\n");
-                return 0;
-            case NUMBER:
-                printf("%d ", tok.parameter);
-                break;
-            case IDENTIFIER:
-                printf("%s ", tok.ident);
-                break;
-            default:
-                printf("%c ", tok.id);
-                break;
-        }
-    }
+    traverse(tree, 0);
+    printf("\n");
 }
+
 
