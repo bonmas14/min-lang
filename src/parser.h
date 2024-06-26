@@ -7,14 +7,14 @@
 #include "lexer.h"
 
 enum {
-    EXPR,
-    TERM,
+    EXPR = 10,
+    TERM = 20,
 };
 
 typedef struct ast_tree_t {
     uint32_t type;
     
-    //bool in_parenthesis;
+    bool in_parenthesis;
     token_t token;
 
     struct ast_tree_t* left;

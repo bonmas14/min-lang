@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 
 void* safe_alloc(size_t size) {
     void* p = malloc(size);
@@ -21,6 +22,7 @@ ast_tree_t* create_node(void) {
     node->token = (token_t){ 0 };
 
     node->left = NULL;
+    node->in_parenthesis = false;
     node->right = NULL;
 
     return node;
@@ -38,7 +40,7 @@ ast_tree_t* rotate_if_needed(ast_tree_t* node) {
     switch (node->token.id) {
         case '*': 
         case '/':
-            if (node->right->token.id == '+' || node->right->token.id == '-')
+            if (node->right->in_parenthesis == false && (node->right->token.id == '+' || node->right->token.id == '-'))
                 return rotate_left(node);
             break;
     }
@@ -53,18 +55,28 @@ ast_tree_t* term_parse(token_t current) {
             node->type = TERM; 
             node->token = current;
             break;
+        case '(':
+        case ')':
+            node->type = 0; 
+            node->token = (token_t){ 0 };
+            break;
         default:
             free(node);
             print_error_from_token("parsing TERM, but recieving EXPR", current);
-            return NULL;
+            exit(0);
             break;
     }
 
     return node;
 }
 
+void print_ast(ast_tree_t* ast) {
+        printf("%d i:%d p:%d l:%d r:%d\n", ast->type, ast->token.id, ast->token.parameter, ast->left == NULL, ast->right == NULL);
+}
+
 ast_tree_t* expr_parse(token_t current) {
     ast_tree_t* node;
+    ast_tree_t* next;
     
     token_t lookahead = lex_peek_next();
 
@@ -77,12 +89,36 @@ ast_tree_t* expr_parse(token_t current) {
                 print_error_from_token("wrong placement", lookahead);
                 return NULL;
             }
+
             node = create_node(); 
             node->type = EXPR;
             node->token = lookahead;
             node->right = expr_parse(lex_read_next());
-            node->left = term_parse(current); 
-            node = rotate_if_needed(node);
+
+            if (current.id == NUMBER) {
+                node->left = term_parse(current);  // only accepts number as token, but if it '(', ')' crashes
+                node = rotate_if_needed(node);
+            }
+            break;
+        case '(':
+            node = expr_parse(lex_read_next());
+            node->in_parenthesis = true;
+
+            next = expr_parse(lex_read_next());
+
+            if (next->left != NULL) {
+                print_error_from_token("left token is not a NULL", lookahead);
+                exit(0);
+            }
+
+            if (next->type == 0)
+                return node;
+
+            next->left = node;
+            return next;
+            break;
+        case ')':
+            return term_parse(current);
             break;
         case NUMBER:
             return expr_parse(lex_read_next());
@@ -90,11 +126,14 @@ ast_tree_t* expr_parse(token_t current) {
             return term_parse(current);
         default:
             print_error_from_token("not supporting this token", lookahead);
-            return NULL;
+            exit(0);
     }
+
     return node;
 }
 
 ast_tree_t* parse(void) {
-    return expr_parse((token_t){ 0 });
+    token_t token = { 0 };
+
+    return expr_parse(token);
 }

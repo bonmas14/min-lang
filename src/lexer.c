@@ -27,6 +27,45 @@ bool set_source_file(char* path) {
     return read_program(&source_file, path);
 }
 
+bool read_program(dyn_t* file_array, char* file_path) {
+    FILE* current_file = fopen(file_path, "r");
+
+    if (current_file == NULL) {
+        printf("cant find file at \"%s\".\n", file_path);
+        return false;
+    }
+
+    if (!dyn_init(&file_array, sizeof(int32_t), DYN_ARRAY_SIZE)) {
+        printf("dynamic array init error.\n");
+        return false;
+    }
+
+    size_t i = 0;
+
+    while (1) {
+        int c = fgetc(current_file);
+        if (c == -1) break; 
+
+        int32_t* array = file_array->data_pointer;
+        
+        array[i] = c;
+
+        if (i >= file_array->length) {
+            if (!dyn_add_size(file_array, DYN_ARRAY_SIZE / 10)) {
+                puts("error adding size");
+                fclose(current_file);
+                return false;
+            }
+        }
+
+        i++;
+    }
+
+    fclose(current_file);
+
+    return true;
+}
+
 void print_error_from_token(char* error, token_t token) {
     puts("\n");
 
@@ -66,6 +105,7 @@ void print_error_from_token(char* error, token_t token) {
     for (size_t i = token.c1; i < stop_char; i++)
         putc(source[i], stdout);
 
+    putc('\n', stdout);
 }
 
 token_t lex_peek_next(void) {
@@ -174,41 +214,3 @@ token_t lex_read_next(void) {
     return token;
 }
 
-bool read_program(dyn_t* file_array, char* file_path) {
-    FILE* current_file = fopen(file_path, "r");
-
-    if (current_file == NULL) {
-        printf("cant find file at \"%s\".\n", file_path);
-        return false;
-    }
-
-    if (!dyn_init(&file_array, sizeof(int32_t), DYN_ARRAY_SIZE)) {
-        printf("dynamic array init error.\n");
-        return false;
-    }
-
-    size_t i = 0;
-
-    while (1) {
-        int c = fgetc(current_file);
-        if (c == -1) break; 
-
-        int32_t* array = file_array->data_pointer;
-        
-        array[i] = c;
-
-        if (i >= file_array->length) {
-            if (!dyn_add_size(file_array, DYN_ARRAY_SIZE / 10)) {
-                puts("error adding size");
-                fclose(current_file);
-                return false;
-            }
-        }
-
-        i++;
-    }
-
-    fclose(current_file);
-
-    return true;
-}

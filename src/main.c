@@ -36,20 +36,21 @@ void traverse(ast_tree_t* node, size_t deep) {
 }
 
 int main(int argc, char** argv) {
-    if (argc <= 1) {
-        puts("mlc {file}");
+    if (argc == 1) {
+        puts("usage:");
+        puts("\tmlc {file}");
         exit(0);
-    }
+    } 
 
     set_source_file(argv[1]);
 
     ast_tree_t* tree = parse();
 
-    printf("out: %d ", execute_tree(tree));
+    printf("out: %d\n", execute_tree(tree));
 
     //traverse(tree, 0);
 
-    printf("\n");
+    //printf("\n");
 }
 
 
