@@ -1,5 +1,5 @@
+// Copyright (c) 2024 bonmas14
 #include "interp.h"
-
 
 int32_t execute_tree(ast_tree_t* tree) {
     if (tree->type == TERM)

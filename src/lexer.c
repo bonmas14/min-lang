@@ -1,3 +1,4 @@
+// Copyright (c) 2024 bonmas14
 #include "lexer.h"
 #include "dynamic_array.h"
 

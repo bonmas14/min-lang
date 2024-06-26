@@ -1,3 +1,4 @@
+// Copyright (c) 2024 bonmas14
 #include "parser.h"
 #include "lexer.h"
 

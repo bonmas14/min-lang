@@ -1,3 +1,4 @@
+// Copyright (c) 2024 bonmas14
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>

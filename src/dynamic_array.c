@@ -1,3 +1,4 @@
+// Copyright (c) 2024 bonmas14
 #include "dynamic_array.h"
 
 #include <stdlib.h>
