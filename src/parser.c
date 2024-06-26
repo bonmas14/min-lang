@@ -97,7 +97,7 @@ ast_tree_t* expr_parse(token_t current) {
             node->right = expr_parse(lex_read_next());
 
             if (current.id == NUMBER) {
-                node->left = term_parse(current);  // only accepts number as token, but if it '(', ')' crashes
+                node->left = term_parse(current);
                 node = rotate_if_needed(node);
             }
             break;
@@ -112,8 +112,10 @@ ast_tree_t* expr_parse(token_t current) {
                 exit(0);
             }
 
-            if (next->type == 0)
+            if (next->type == 0) {
+                free(next);
                 return node;
+            }
 
             next->left = node;
             return next;
